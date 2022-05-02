@@ -1,2 +1,2 @@
-# library-monolith
-Spring Boot Web App | Monolithic Architecture | REST API
+# Ebook library management system
+Spring Boot Monolithic Application with secured REST APIs
