@@ -19,7 +19,7 @@ public class BookDto {
 
     private Boolean isAvailable;
 
-    private GenreDto genre;
+    private String genreName;
 
-    private AuthorDto author;
+    private String authorFullName;
 }
