@@ -1,7 +1,18 @@
 package com.podchez.librarymonolith.service;
 
-import org.springframework.stereotype.Service;
+import com.podchez.librarymonolith.dto.GenreDto;
 
-@Service
-public class GenreService {
+import java.util.List;
+
+public interface GenreService {
+
+    List<GenreDto> findAll();
+
+    GenreDto findById(Long id);
+
+    GenreDto save(GenreDto genreDto);
+
+    GenreDto update(Long id, GenreDto genreDto);
+
+    void deleteById(Long id);
 }
