@@ -8,11 +8,11 @@ public interface GenreService {
 
     List<GenreDto> findAll();
 
-    GenreDto findById(Long id);
+    GenreDto findById(Integer id);
 
     GenreDto save(GenreDto genreDto);
 
-    GenreDto update(Long id, GenreDto genreDto);
+    GenreDto update(Integer id, GenreDto genreDto);
 
-    void deleteById(Long id);
+    void deleteById(Integer id);
 }

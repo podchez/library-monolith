@@ -8,11 +8,11 @@ public interface RoleService {
 
     List<RoleDto> findAll();
 
-    RoleDto findById(Long id);
+    RoleDto findById(Integer id);
 
     RoleDto save(RoleDto roleDto);
 
-    RoleDto update(Long id, RoleDto roleDto);
+    RoleDto update(Integer id, RoleDto roleDto);
 
-    void deleteById(Long id);
+    void deleteById(Integer id);
 }
