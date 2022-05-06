@@ -8,6 +8,8 @@ public interface BookService {
 
     List<BookDto> findAll();
 
+    List<BookDto> findAllByTitle(String name);
+
     BookDto findById(Long id);
 
     BookDto save(BookDto bookDto);
