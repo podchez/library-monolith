@@ -8,7 +8,7 @@ public interface BookService {
 
     List<BookDto> findAll();
 
-    List<BookDto> findAllByTitle(String name);
+    List<BookDto> findAllByTitle(String title);
 
     BookDto findById(Long id);
 
