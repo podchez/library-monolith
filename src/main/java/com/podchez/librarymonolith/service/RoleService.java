@@ -1,7 +1,18 @@
 package com.podchez.librarymonolith.service;
 
-import org.springframework.stereotype.Service;
+import com.podchez.librarymonolith.dto.RoleDto;
 
-@Service
-public class RoleService {
+import java.util.List;
+
+public interface RoleService {
+
+    List<RoleDto> findAll();
+
+    RoleDto findById(Integer id);
+
+    RoleDto save(RoleDto roleDto);
+
+    RoleDto update(Integer id, RoleDto roleDto);
+
+    void deleteById(Integer id);
 }

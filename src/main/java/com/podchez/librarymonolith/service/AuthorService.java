@@ -1,7 +1,18 @@
 package com.podchez.librarymonolith.service;
 
-import org.springframework.stereotype.Service;
+import com.podchez.librarymonolith.dto.AuthorDto;
 
-@Service
-public class AuthorService {
+import java.util.List;
+
+public interface AuthorService {
+
+    List<AuthorDto> findAll();
+
+    AuthorDto findById(Long id);
+
+    AuthorDto save(AuthorDto authorDto);
+
+    AuthorDto update(Long id, AuthorDto authorDto);
+
+    void deleteById(Long id);
 }

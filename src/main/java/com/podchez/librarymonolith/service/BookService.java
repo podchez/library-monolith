@@ -1,7 +1,20 @@
 package com.podchez.librarymonolith.service;
 
-import org.springframework.stereotype.Service;
+import com.podchez.librarymonolith.dto.BookDto;
 
-@Service
-public class BookService {
+import java.util.List;
+
+public interface BookService {
+
+    List<BookDto> findAll();
+
+    List<BookDto> findAllByTitle(String title);
+
+    BookDto findById(Long id);
+
+    BookDto save(BookDto bookDto);
+
+    BookDto update(Long id, BookDto bookDto);
+
+    void deleteById(Long id);
 }
