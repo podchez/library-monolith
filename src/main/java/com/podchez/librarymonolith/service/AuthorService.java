@@ -1,18 +1,21 @@
 package com.podchez.librarymonolith.service;
 
-import com.podchez.librarymonolith.dto.AuthorDto;
+import com.podchez.librarymonolith.dto.AuthorRequestDto;
+import com.podchez.librarymonolith.dto.AuthorResponseDto;
 
 import java.util.List;
 
 public interface AuthorService {
 
-    List<AuthorDto> findAll();
+    List<AuthorResponseDto> findAll();
 
-    AuthorDto findById(Long id);
+    AuthorResponseDto findById(Long id);
 
-    AuthorDto save(AuthorDto authorDto);
+    AuthorResponseDto findByFullName(String fullName);
 
-    AuthorDto update(Long id, AuthorDto authorDto);
+    AuthorResponseDto save(AuthorRequestDto authorReqDto);
+
+    AuthorResponseDto update(Long id, AuthorRequestDto authorReqDto);
 
     void deleteById(Long id);
 }
