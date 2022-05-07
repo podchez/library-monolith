@@ -1,16 +1,26 @@
 package com.podchez.librarymonolith.dto.mapper;
 
-import com.podchez.librarymonolith.dto.BookDto;
-import com.podchez.librarymonolith.entity.Author;
+import com.podchez.librarymonolith.dto.BookRequestDto;
+import com.podchez.librarymonolith.dto.BookResponseDto;
 import com.podchez.librarymonolith.entity.Book;
-import com.podchez.librarymonolith.entity.Genre;
 import org.springframework.stereotype.Component;
 
 @Component
-public class BookMapper implements Mapper<Book, BookDto> {
+public class BookMapper implements Mapper<BookRequestDto, Book, BookResponseDto> {
     @Override
-    public BookDto toDto(Book entity) {
-        return BookDto.builder()
+    public Book toEntity(BookRequestDto reqDto) {
+        return Book.builder()
+                .title(reqDto.getTitle())
+                .pages(reqDto.getPages())
+                .priceInCents(reqDto.getPriceInCents())
+                // the genreName->genre mapping with all checks is in the BookService
+                // the authorFullName->author mapping with all checks is in the BookService
+                .build();
+    }
+
+    @Override
+    public BookResponseDto toRespDto(Book entity) {
+        return BookResponseDto.builder()
                 .id(entity.getId())
                 .title(entity.getTitle())
                 .pages(entity.getPages())
@@ -18,19 +28,6 @@ public class BookMapper implements Mapper<Book, BookDto> {
                 .isAvailable(entity.getIsAvailable())
                 .genreName(entity.getGenre().getName())
                 .authorFullName(entity.getAuthor().getFullName())
-                .build();
-    }
-
-    @Override
-    public Book toEntity(BookDto dto) {
-        return Book.builder()
-                .id(dto.getId())
-                .title(dto.getTitle())
-                .pages(dto.getPages())
-                .priceInCents(dto.getPriceInCents())
-                .isAvailable(dto.getIsAvailable())
-                .genre(new Genre(null, dto.getGenreName(), null))
-                .author(new Author(null, dto.getAuthorFullName(), null))
                 .build();
     }
 }
