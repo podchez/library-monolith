@@ -1,6 +1,7 @@
 package com.podchez.librarymonolith.service.impl;
 
-import com.podchez.librarymonolith.dto.AuthorDto;
+import com.podchez.librarymonolith.dto.AuthorRequestDto;
+import com.podchez.librarymonolith.dto.AuthorResponseDto;
 import com.podchez.librarymonolith.dto.mapper.AuthorMapper;
 import com.podchez.librarymonolith.entity.Author;
 import com.podchez.librarymonolith.exception.AuthorAlreadyExistsException;
@@ -28,46 +29,53 @@ public class AuthorServiceImpl implements AuthorService {
 
 
     @Override
-    public List<AuthorDto> findAll() {
+    public List<AuthorResponseDto> findAll() {
         return authorRepository.findAll().stream()
-                .map(authorMapper::toDto)
+                .map(authorMapper::toRespDto)
                 .collect(Collectors.toList());
     }
 
     @Override
-    public AuthorDto findById(Long id) {
-        return authorMapper.toDto(authorRepository.findById(id)
+    public AuthorResponseDto findById(Long id) {
+        return authorMapper.toRespDto(authorRepository.findById(id)
                 .orElseThrow(() -> new AuthorNotFoundException(id)));
     }
 
     @Override
-    public AuthorDto save(AuthorDto authorDto) {
-        String authorFullName = authorDto.getFullName();
+    public AuthorResponseDto findByFullName(String fullName) {
+        return authorMapper.toRespDto(authorRepository.findByFullName(fullName)
+                .orElseThrow(() -> new AuthorNotFoundException(fullName)));
+    }
+
+    @Override
+    public AuthorResponseDto save(AuthorRequestDto authorReqDto) {
+        String authorFullName = authorReqDto.getFullName();
         if (authorRepository.findByFullName(authorFullName).isPresent()) {
             throw new AuthorAlreadyExistsException(authorFullName);
         }
 
-        authorDto.setId(null); // to avoid updating
-        Author savedAuthor = authorRepository.save(authorMapper.toEntity(authorDto));
-        return authorMapper.toDto(savedAuthor);
+        Author savedAuthor = authorRepository.save(authorMapper.toEntity(authorReqDto));
+        return authorMapper.toRespDto(savedAuthor);
     }
 
     @Override
-    public AuthorDto update(Long id, AuthorDto authorDto) {
+    public AuthorResponseDto update(Long id, AuthorRequestDto authorReqDto) {
         if (!authorRepository.existsById(id)) {
             throw new AuthorNotFoundException(id);
         }
 
-        String authorFullName = authorDto.getFullName();
+        String authorFullName = authorReqDto.getFullName();
         Optional<Author> authorWithSameFullName = authorRepository.findByFullName(authorFullName);
-        if(authorWithSameFullName.isPresent() &&
+        if (authorWithSameFullName.isPresent() &&
                 !authorWithSameFullName.get().getId().equals(id)) {
             throw new AuthorAlreadyExistsException(authorFullName);
         }
 
-        authorDto.setId(id); // authorDto should have correct id
-        Author updatedAuthor = authorRepository.save(authorMapper.toEntity(authorDto));
-        return authorMapper.toDto(updatedAuthor);
+        Author author = authorMapper.toEntity(authorReqDto);
+        author.setId(id); // to avoid saving
+
+        Author updatedAuthor = authorRepository.save(author);
+        return authorMapper.toRespDto(updatedAuthor);
     }
 
     @Override

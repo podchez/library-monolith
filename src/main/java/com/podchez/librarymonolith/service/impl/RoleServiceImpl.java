@@ -1,6 +1,7 @@
 package com.podchez.librarymonolith.service.impl;
 
-import com.podchez.librarymonolith.dto.RoleDto;
+import com.podchez.librarymonolith.dto.RoleRequestDto;
+import com.podchez.librarymonolith.dto.RoleResponseDto;
 import com.podchez.librarymonolith.dto.mapper.RoleMapper;
 import com.podchez.librarymonolith.entity.Role;
 import com.podchez.librarymonolith.exception.RoleAlreadyExistsException;
@@ -27,46 +28,53 @@ public class RoleServiceImpl implements RoleService {
     }
 
     @Override
-    public List<RoleDto> findAll() {
+    public List<RoleResponseDto> findAll() {
         return roleRepository.findAll().stream()
-                .map(roleMapper::toDto)
+                .map(roleMapper::toRespDto)
                 .collect(Collectors.toList());
     }
 
     @Override
-    public RoleDto findById(Integer id) {
-        return roleMapper.toDto(roleRepository.findById(id)
+    public RoleResponseDto findById(Integer id) {
+        return roleMapper.toRespDto(roleRepository.findById(id)
                 .orElseThrow(() -> new RoleNotFoundException(id)));
     }
 
     @Override
-    public RoleDto save(RoleDto roleDto) {
-        String roleName = roleDto.getName();
+    public RoleResponseDto findByName(String name) {
+        return roleMapper.toRespDto(roleRepository.findByName(name)
+                .orElseThrow(() -> new RoleNotFoundException(name)));
+    }
+
+    @Override
+    public RoleResponseDto save(RoleRequestDto roleReqDto) {
+        String roleName = roleReqDto.getName();
         if (roleRepository.findByName(roleName).isPresent()) {
             throw new RoleAlreadyExistsException(roleName);
         }
 
-        roleDto.setId(null); // to avoid updating
-        Role savedRole = roleRepository.save(roleMapper.toEntity(roleDto));
-        return roleMapper.toDto(savedRole);
+        Role savedRole = roleRepository.save(roleMapper.toEntity(roleReqDto));
+        return roleMapper.toRespDto(savedRole);
     }
 
     @Override
-    public RoleDto update(Integer id, RoleDto roleDto) {
+    public RoleResponseDto update(Integer id, RoleRequestDto roleReqDto) {
         if (!roleRepository.existsById(id)) {
             throw new RoleNotFoundException(id);
         }
 
-        String roleName = roleDto.getName();
+        String roleName = roleReqDto.getName();
         Optional<Role> roleWithSameName = roleRepository.findByName(roleName);
         if (roleWithSameName.isPresent() &&
                 !roleWithSameName.get().getId().equals(id)) {
             throw new RoleAlreadyExistsException(roleName);
         }
 
-        roleDto.setId(id); // roleDto should have correct id
-        Role updatedRole = roleRepository.save(roleMapper.toEntity(roleDto));
-        return roleMapper.toDto(updatedRole);
+        Role role = roleMapper.toEntity(roleReqDto);
+        role.setId(id); // to avoid saving
+
+        Role updatedRole = roleRepository.save(role);
+        return roleMapper.toRespDto(updatedRole);
     }
 
     @Override
