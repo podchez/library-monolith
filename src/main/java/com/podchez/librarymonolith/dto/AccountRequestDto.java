@@ -9,15 +9,15 @@ import java.util.Set;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class AccountDto {
-
-    private Long id;
+public class AccountRequestDto {
 
     private String firstName;
 
     private String lastName;
 
     private String email;
+
+    private String password;
 
     private Set<String> roleNames;
 }

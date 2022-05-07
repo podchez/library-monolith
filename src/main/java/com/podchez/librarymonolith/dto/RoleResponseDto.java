@@ -9,11 +9,11 @@ import java.util.Set;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class RoleDto {
+public class RoleResponseDto {
 
     private Integer id;
 
     private String name;
 
-    private Set<AccountDto> accounts;
+    private Set<AccountResponseDto> accounts;
 }

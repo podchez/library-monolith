@@ -1,18 +1,21 @@
 package com.podchez.librarymonolith.service;
 
-import com.podchez.librarymonolith.dto.GenreDto;
+import com.podchez.librarymonolith.dto.GenreRequestDto;
+import com.podchez.librarymonolith.dto.GenreResponseDto;
 
 import java.util.List;
 
 public interface GenreService {
 
-    List<GenreDto> findAll();
+    List<GenreResponseDto> findAll();
 
-    GenreDto findById(Integer id);
+    GenreResponseDto findById(Integer id);
 
-    GenreDto save(GenreDto genreDto);
+    GenreResponseDto findByName(String name);
 
-    GenreDto update(Integer id, GenreDto genreDto);
+    GenreResponseDto save(GenreRequestDto genreReqDto);
+
+    GenreResponseDto update(Integer id, GenreRequestDto genreReqDto);
 
     void deleteById(Integer id);
 }

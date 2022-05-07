@@ -1,6 +1,7 @@
 package com.podchez.librarymonolith.service.impl;
 
-import com.podchez.librarymonolith.dto.GenreDto;
+import com.podchez.librarymonolith.dto.GenreRequestDto;
+import com.podchez.librarymonolith.dto.GenreResponseDto;
 import com.podchez.librarymonolith.dto.mapper.GenreMapper;
 import com.podchez.librarymonolith.entity.Genre;
 import com.podchez.librarymonolith.exception.GenreAlreadyExistsException;
@@ -25,46 +26,53 @@ public class GenreServiceImpl implements GenreService {
     }
 
     @Override
-    public List<GenreDto> findAll() {
+    public List<GenreResponseDto> findAll() {
         return genreRepository.findAll().stream()
-                .map(genreMapper::toDto)
+                .map(genreMapper::toRespDto)
                 .collect(Collectors.toList());
     }
 
     @Override
-    public GenreDto findById(Integer id) {
-        return genreMapper.toDto(genreRepository.findById(id)
+    public GenreResponseDto findById(Integer id) {
+        return genreMapper.toRespDto(genreRepository.findById(id)
                 .orElseThrow(() -> new GenreNotFoundException(id)));
     }
 
     @Override
-    public GenreDto save(GenreDto genreDto) {
-        String genreName = genreDto.getName();
+    public GenreResponseDto findByName(String name) {
+        return genreMapper.toRespDto(genreRepository.findByName(name)
+                .orElseThrow(() -> new GenreNotFoundException(name)));
+    }
+
+    @Override
+    public GenreResponseDto save(GenreRequestDto genreReqDto) {
+        String genreName = genreReqDto.getName();
         if (genreRepository.findByName(genreName).isPresent()) {
             throw new GenreAlreadyExistsException(genreName);
         }
 
-        genreDto.setId(null); // to avoid updating
-        Genre savedGenre = genreRepository.save(genreMapper.toEntity(genreDto));
-        return genreMapper.toDto(savedGenre);
+        Genre savedGenre = genreRepository.save(genreMapper.toEntity(genreReqDto));
+        return genreMapper.toRespDto(savedGenre);
     }
 
     @Override
-    public GenreDto update(Integer id, GenreDto genreDto) {
+    public GenreResponseDto update(Integer id, GenreRequestDto genreReqDto) {
         if (!genreRepository.existsById(id)) {
             throw new GenreNotFoundException(id);
         }
 
-        String genreName = genreDto.getName();
+        String genreName = genreReqDto.getName();
         Optional<Genre> genreWithSameName = genreRepository.findByName(genreName);
         if (genreWithSameName.isPresent() &&
                 !genreWithSameName.get().getId().equals(id)) {
             throw new GenreAlreadyExistsException(genreName);
         }
 
-        genreDto.setId(id); // genreDto should have correct id
-        Genre updatedGenre = genreRepository.save(genreMapper.toEntity(genreDto));
-        return genreMapper.toDto(updatedGenre);
+        Genre genre = genreMapper.toEntity(genreReqDto);
+        genre.setId(id); // to avoid saving
+
+        Genre updatedGenre = genreRepository.save(genre);
+        return genreMapper.toRespDto(updatedGenre);
     }
 
     @Override

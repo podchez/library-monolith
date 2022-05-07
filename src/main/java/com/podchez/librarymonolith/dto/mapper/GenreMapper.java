@@ -1,6 +1,7 @@
 package com.podchez.librarymonolith.dto.mapper;
 
-import com.podchez.librarymonolith.dto.GenreDto;
+import com.podchez.librarymonolith.dto.GenreRequestDto;
+import com.podchez.librarymonolith.dto.GenreResponseDto;
 import com.podchez.librarymonolith.entity.Genre;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -8,7 +9,7 @@ import org.springframework.stereotype.Component;
 import java.util.stream.Collectors;
 
 @Component
-public class GenreMapper implements Mapper<Genre, GenreDto> {
+public class GenreMapper implements Mapper<GenreRequestDto, Genre, GenreResponseDto> {
 
     private final BookMapper bookMapper;
 
@@ -18,23 +19,19 @@ public class GenreMapper implements Mapper<Genre, GenreDto> {
     }
 
     @Override
-    public GenreDto toDto(Genre entity) {
-        return GenreDto.builder()
-                .id(entity.getId())
-                .name(entity.getName())
-                .books(entity.getBooks().stream()
-                        .map(bookMapper::toDto)
-                        .collect(Collectors.toSet()))
+    public Genre toEntity(GenreRequestDto reqDto) {
+        return Genre.builder()
+                .name(reqDto.getName())
                 .build();
     }
 
     @Override
-    public Genre toEntity(GenreDto dto) {
-        return Genre.builder()
-                .id(dto.getId())
-                .name(dto.getName())
-                .books(dto.getBooks().stream()
-                        .map(bookMapper::toEntity)
+    public GenreResponseDto toRespDto(Genre entity) {
+        return GenreResponseDto.builder()
+                .id(entity.getId())
+                .name(entity.getName())
+                .books(entity.getBooks().stream()
+                        .map(bookMapper::toRespDto)
                         .collect(Collectors.toSet()))
                 .build();
     }
