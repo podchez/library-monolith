@@ -9,11 +9,11 @@ import java.util.Set;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class AuthorDto {
+public class AuthorResponseDto {
 
     private Long id;
 
     private String fullName;
 
-    private Set<BookDto> books;
+    private Set<BookResponseDto> books;
 }
