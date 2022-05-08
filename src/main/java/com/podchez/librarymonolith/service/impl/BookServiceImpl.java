@@ -61,6 +61,7 @@ public class BookServiceImpl implements BookService {
         Book book = bookMapper.toEntity(bookReqDto);
         book.setGenre(getGenreFromBookReqDto(bookReqDto));
         book.setAuthor(getAuthorFromBookReqDto(bookReqDto));
+        book.setIsAvailable(true);
 
         Book savedBook = bookRepository.save(book);
         return bookMapper.toRespDto(savedBook);
@@ -75,6 +76,7 @@ public class BookServiceImpl implements BookService {
         Book book = bookMapper.toEntity(bookReqDto);
         book.setGenre(getGenreFromBookReqDto(bookReqDto));
         book.setAuthor(getAuthorFromBookReqDto(bookReqDto));
+        book.setIsAvailable(true);
         book.setId(id); // to avoid saving
 
         Book updatedBook = bookRepository.save(book);
