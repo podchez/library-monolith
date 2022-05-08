@@ -33,7 +33,7 @@ public class Account {
     @Column(name = "is_enabled")
     private Boolean isEnabled;
 
-    @ManyToMany
+    @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(name = "account_role",
             joinColumns = @JoinColumn(name = "account_id"),
             inverseJoinColumns = @JoinColumn(name = "role_id"))
