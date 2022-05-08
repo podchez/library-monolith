@@ -3,7 +3,7 @@ VALUES ('ROLE_ADMIN'), -- 1
        ('ROLE_STAFF'), -- 2
        ('ROLE_USER');  -- 3
 
--- password == first_name (Bcrypt encrypted hash)
+-- passwords: admin, staff, user (Bcrypt encrypted hash)
 INSERT INTO account (first_name, last_name, email, password)
 VALUES ('Admin', 'Initial', 'admin@admin.com', '$2a$10$k.c6wbftfBq7U0tSwvA2JeKb3iqJjjpu2fkM0wJtXircVgMK0GY4y'), -- 1
        ('Staff', 'Initial', 'staff@staff.com', '$2a$10$kYHiVb.4aqKclk8Jg9M5eeg4SRkYg.mhcT4T1oCYsdt2bZFSPt2oa'), -- 2
