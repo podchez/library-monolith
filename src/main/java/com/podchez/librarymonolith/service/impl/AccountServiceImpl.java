@@ -62,6 +62,7 @@ public class AccountServiceImpl implements AccountService {
 
         Account account = accountMapper.toEntity(accReqDto);
         account.setRoles(getRolesFromAccReqDto(accReqDto));
+        account.setIsEnabled(true);
 
         Account savedAccount = accountRepository.save(account);
         return accountMapper.toRespDto(savedAccount);
@@ -82,6 +83,7 @@ public class AccountServiceImpl implements AccountService {
 
         Account account = accountMapper.toEntity(accReqDto);
         account.setRoles(getRolesFromAccReqDto(accReqDto));
+        account.setIsEnabled(true);
         account.setId(id); // to avoid saving
 
         Account updatedAccount = accountRepository.save(account);

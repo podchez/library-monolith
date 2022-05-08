@@ -15,6 +15,8 @@
 	<description>Spring Boot | Monolithic Architecture | REST API | PostgreSQL</description>
 	<properties>
 		<java.version>11</java.version>
+		<hibernate.version>5.6.5.Final</hibernate.version>
+		<hibernate-validator.version>5.6.5.Final</hibernate-validator.version>
 	</properties>
 	<dependencies>
 		<dependency>
