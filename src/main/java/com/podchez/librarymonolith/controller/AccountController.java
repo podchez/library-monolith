@@ -75,11 +75,6 @@ public class AccountController {
         accountService.save(mapper.toEntity(accountReqDto));
 
         String jwtToken = jwtUtil.GenerateToken(accountReqDto.getUsername());
-//        String jwtToken = jwtUtil.GenerateToken(username,
-//                accountDetailsService.loadUserByUsername(username).getAuthorities().stream()
-//                        .map(GrantedAuthority::getAuthority)
-//                        .collect(Collectors.toList())
-//                        .toString());
 
         return new JwtTokenDto(jwtToken);
     }
@@ -110,13 +105,5 @@ public class AccountController {
     @ResponseStatus(HttpStatus.NO_CONTENT) // 204
     public void deleteById(@PathVariable Long id) {
         accountService.delete(id);
-    }
-
-    @GetMapping("/test")
-    public String test() {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        AccountDetails accountDetails = (AccountDetails) authentication.getPrincipal();
-
-        return accountDetails.getUsername();
     }
 }
