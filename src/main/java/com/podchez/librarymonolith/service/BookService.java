@@ -1,21 +1,20 @@
 package com.podchez.librarymonolith.service;
 
-import com.podchez.librarymonolith.dto.BookRequestDto;
-import com.podchez.librarymonolith.dto.BookResponseDto;
+import com.podchez.librarymonolith.model.Book;
 
 import java.util.List;
 
 public interface BookService {
 
-    List<BookResponseDto> findAll();
+    List<Book> findAll();
 
-    List<BookResponseDto> findAllByTitle(String title);
+    List<Book> findAllByTitle(String title);
 
-    BookResponseDto findById(Long id);
+    Book findById(Long id);
 
-    BookResponseDto save(BookRequestDto bookReqDto);
+    void save(Book book, String authorFullName);
 
-    BookResponseDto update(Long id, BookRequestDto bookReqDto);
+    void update(Long id, Book book, String authorFullName);
 
-    void deleteById(Long id);
+    void delete(Long id);
 }

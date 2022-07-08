@@ -1,21 +1,20 @@
 package com.podchez.librarymonolith.service;
 
-import com.podchez.librarymonolith.dto.RoleRequestDto;
-import com.podchez.librarymonolith.dto.RoleResponseDto;
+import com.podchez.librarymonolith.model.Role;
 
 import java.util.List;
 
 public interface RoleService {
 
-    List<RoleResponseDto> findAll();
+    List<Role> findAll();
 
-    RoleResponseDto findById(Integer id);
+    Role findById(Integer id);
 
-    RoleResponseDto findByName(String name);
+    Role findByName(String name);
 
-    RoleResponseDto save(RoleRequestDto roleReqDto);
+    void save(Role role);
 
-    RoleResponseDto update(Integer id, RoleRequestDto roleReqDto);
+    void update(Integer id, Role role);
 
-    void deleteById(Integer id);
+    void delete(Integer id);
 }

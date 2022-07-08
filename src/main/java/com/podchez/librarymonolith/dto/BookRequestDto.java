@@ -15,7 +15,5 @@ public class BookRequestDto {
 
     private Long priceInCents;
 
-    private String genreName;
-
     private String authorFullName;
 }

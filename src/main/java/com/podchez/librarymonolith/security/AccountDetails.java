@@ -1,6 +1,6 @@
 package com.podchez.librarymonolith.security;
 
-import com.podchez.librarymonolith.entity.Account;
+import com.podchez.librarymonolith.model.Account;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -20,7 +20,7 @@ public class AccountDetails implements UserDetails {
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return account.getRoles().stream()
                 .map(role -> new SimpleGrantedAuthority(role.getName()))
-                .collect(Collectors.toSet());
+                .collect(Collectors.toList());
     }
 
     @Override
@@ -51,5 +51,9 @@ public class AccountDetails implements UserDetails {
     @Override
     public boolean isEnabled() {
         return account.getIsEnabled();
+    }
+
+    public Account getAccount() {
+        return account;
     }
 }

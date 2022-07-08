@@ -2,7 +2,6 @@ package com.podchez.librarymonolith.dto;
 
 import lombok.*;
 
-import java.util.Set;
 
 @Getter
 @Setter
@@ -11,13 +10,9 @@ import java.util.Set;
 @AllArgsConstructor
 public class AccountRequestDto {
 
-    private String firstName;
-
-    private String lastName;
+    private String username;
 
     private String email;
 
     private String password;
-
-    private Set<String> roleNames;
 }

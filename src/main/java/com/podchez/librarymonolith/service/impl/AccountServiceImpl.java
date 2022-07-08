@@ -1,110 +1,144 @@
 package com.podchez.librarymonolith.service.impl;
 
-import com.podchez.librarymonolith.dto.AccountRequestDto;
-import com.podchez.librarymonolith.dto.AccountResponseDto;
-import com.podchez.librarymonolith.dto.mapper.AccountMapper;
-import com.podchez.librarymonolith.entity.Account;
-import com.podchez.librarymonolith.entity.Role;
+import com.podchez.librarymonolith.model.Account;
 import com.podchez.librarymonolith.exception.AccountAlreadyExistsException;
 import com.podchez.librarymonolith.exception.AccountNotFoundException;
-import com.podchez.librarymonolith.exception.RoleNotFoundException;
 import com.podchez.librarymonolith.repository.AccountRepository;
 import com.podchez.librarymonolith.repository.RoleRepository;
 import com.podchez.librarymonolith.service.AccountService;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
-import java.util.HashSet;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
-import java.util.stream.Collectors;
+import javax.validation.ConstraintViolation;
+import javax.validation.ConstraintViolationException;
+import javax.validation.Validator;
+import java.time.LocalDateTime;
+import java.util.*;
 
 @Service
+@Transactional(readOnly = true)
+@Slf4j
 public class AccountServiceImpl implements AccountService {
 
     private final AccountRepository accountRepository;
-    private final AccountMapper accountMapper;
     private final RoleRepository roleRepository;
+    private final Validator validator;
+    private final PasswordEncoder passwordEncoder;
 
     @Autowired
-    public AccountServiceImpl(AccountRepository accountRepository, AccountMapper accountMapper, RoleRepository roleRepository) {
+    public AccountServiceImpl(AccountRepository accountRepository, RoleRepository roleRepository,
+                              Validator validator, PasswordEncoder passwordEncoder) {
         this.accountRepository = accountRepository;
-        this.accountMapper = accountMapper;
         this.roleRepository = roleRepository;
+        this.validator = validator;
+        this.passwordEncoder = passwordEncoder;
     }
 
     @Override
-    public List<AccountResponseDto> findAll() {
-        return accountRepository.findAll().stream()
-                .map(accountMapper::toRespDto)
-                .collect(Collectors.toList());
+    public List<Account> findAll() {
+        log.info("IN findAll");
+        return accountRepository.findAll();
     }
 
     @Override
-    public AccountResponseDto findById(Long id) {
-        return accountMapper.toRespDto(accountRepository.findById(id)
-                .orElseThrow(() -> new AccountNotFoundException(id)));
+    public Account findById(Long id) {
+        log.info("IN findById - id: {}", id);
+        return accountRepository.findById(id)
+                .orElseThrow(() -> new AccountNotFoundException("There is no account with ID " + id + " in the DB"));
     }
 
     @Override
-    public AccountResponseDto findByEmail(String email) {
-        return accountMapper.toRespDto(accountRepository.findByEmail(email)
-                .orElseThrow(() -> new AccountNotFoundException(email)));
+    public Account findByUsername(String username) {
+        log.info("IN findByUsername - username: {}", username);
+        return accountRepository.findByUsername(username)
+                .orElseThrow(() -> new AccountNotFoundException("There is no account with username '" + username + "' in the DB"));
     }
 
     @Override
-    public AccountResponseDto save(AccountRequestDto accReqDto) {
-        String accountEmail = accReqDto.getEmail();
-        if (accountRepository.findByEmail(accountEmail).isPresent()) {
-            throw new AccountAlreadyExistsException(accountEmail);
+    public Account findByEmail(String email) {
+        log.info("IN findByEmail - email: {}", email);
+        return accountRepository.findByEmail(email)
+                .orElseThrow(() -> new AccountNotFoundException("There is no account with email '" + email + "' in the DB"));
+    }
+
+    @Override
+    @Transactional
+    public void save(Account account) {
+        validate(account);
+
+        String username = account.getUsername();
+        if (accountRepository.findByUsername(username).isPresent()) {
+            throw new AccountAlreadyExistsException("Account with username '" + username + "' already exists");
         }
 
-        Account account = accountMapper.toEntity(accReqDto);
-        account.setRoles(getRolesFromAccReqDto(accReqDto));
+        String email = account.getEmail();
+        if (accountRepository.findByEmail(email).isPresent()) {
+            throw new AccountAlreadyExistsException("Account with email '" + email + "' already exists");
+        }
+
         account.setIsEnabled(true);
+        account.setCreatedAt(LocalDateTime.now());
+        account.setUpdatedAt(LocalDateTime.now());
+        account.setPassword(passwordEncoder.encode(account.getPassword()));
 
-        Account savedAccount = accountRepository.save(account);
-        return accountMapper.toRespDto(savedAccount);
+        account.setRoles(Collections.singletonList(roleRepository.findByName("ROLE_USER").get()));
+        accountRepository.save(account);
+        log.info("IN save - account with username: {} and email: {} saved", username, email);
     }
 
     @Override
-    public AccountResponseDto update(Long id, AccountRequestDto accReqDto) {
+    @Transactional
+    public void update(Long id, Account account) {
+        validate(account);
+
         if (!accountRepository.existsById(id)) {
-            throw new AccountNotFoundException(id);
+            throw new AccountNotFoundException("There is no account with ID " + id + " in the DB");
         }
 
-        String accountEmail = accReqDto.getEmail();
-        Optional<Account> accountWithSameEmail = accountRepository.findByEmail(accountEmail);
-        if(accountWithSameEmail.isPresent() &&
-                !accountWithSameEmail.get().getId().equals(id)) {
-            throw new AccountAlreadyExistsException(accountEmail);
-        }
+        String username = account.getUsername();
+        accountRepository.findByUsername(username).ifPresent(accountWithSameUsername -> {
+            if (!accountWithSameUsername.getId().equals(id)) {
+                throw new AccountNotFoundException("Account with username '" + username + "' already exists");
+            }
+        });
 
-        Account account = accountMapper.toEntity(accReqDto);
-        account.setRoles(getRolesFromAccReqDto(accReqDto));
-        account.setIsEnabled(true);
-        account.setId(id); // to avoid saving
+        String email = account.getEmail();
+        accountRepository.findByEmail(email).ifPresent(accountWithSameEmail -> {
+            if (!accountWithSameEmail.getId().equals(id)) {
+                throw new AccountNotFoundException("Account with email '" + email + "' already exists");
+            }
+        });
 
-        Account updatedAccount = accountRepository.save(account);
-        return accountMapper.toRespDto(updatedAccount);
+        account.setUpdatedAt(LocalDateTime.now());
+        account.setPassword(passwordEncoder.encode(account.getPassword()));
+        account.setId(id);
+        accountRepository.save(account);
+        log.info("IN update - account with id: {} updated", id);
     }
 
     @Override
-    public void deleteById(Long id) {
+    @Transactional
+    public void delete(Long id) {
         if (!accountRepository.existsById(id)) {
-            throw new AccountNotFoundException(id);
+            throw new AccountNotFoundException("There is no account with ID " + id + " in the DB");
         }
+
         accountRepository.deleteById(id);
+        log.info("IN delete - account with id: {} deleted", id);
     }
 
-    // Helper method
-    private Set<Role> getRolesFromAccReqDto(AccountRequestDto accReqDto) {
-        Set<Role> accountRoles = new HashSet<>();
-        for (String accRoleName : accReqDto.getRoleNames()) {
-            accountRoles.add(roleRepository.findByName(accRoleName)
-                    .orElseThrow(() -> new RoleNotFoundException(accRoleName)));
+    private void validate(Account account) {
+        Set<ConstraintViolation<Account>> violations = validator.validate(account);
+        if (!violations.isEmpty()) {
+            StringBuilder sb = new StringBuilder();
+            for (ConstraintViolation<Account> violation : violations) {
+                sb.append(violation.getMessage() + "; ");
+            }
+            throw new ConstraintViolationException(sb.toString(), violations);
         }
-        return accountRoles;
     }
 }

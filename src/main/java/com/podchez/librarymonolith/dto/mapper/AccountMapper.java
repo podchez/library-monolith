@@ -2,8 +2,8 @@ package com.podchez.librarymonolith.dto.mapper;
 
 import com.podchez.librarymonolith.dto.AccountRequestDto;
 import com.podchez.librarymonolith.dto.AccountResponseDto;
-import com.podchez.librarymonolith.entity.Account;
-import com.podchez.librarymonolith.entity.Role;
+import com.podchez.librarymonolith.model.Account;
+import com.podchez.librarymonolith.model.Role;
 import org.springframework.stereotype.Component;
 
 import java.util.stream.Collectors;
@@ -13,14 +13,9 @@ public class AccountMapper implements Mapper<AccountRequestDto, Account, Account
     @Override
     public Account toEntity(AccountRequestDto reqDto) {
         return Account.builder()
-                .firstName(reqDto.getFirstName())
-                .lastName(reqDto.getLastName())
+                .username(reqDto.getUsername())
                 .email(reqDto.getEmail())
                 .password(reqDto.getPassword())
-                .roles(reqDto.getRoleNames().stream()
-                        .map(roleName -> new Role(null, roleName, null))
-                        .collect(Collectors.toSet()))
-                // the roleNames->roles mapping with all checks is in the AccountService
                 .build();
     }
 
@@ -28,13 +23,14 @@ public class AccountMapper implements Mapper<AccountRequestDto, Account, Account
     public AccountResponseDto toRespDto(Account entity) {
         return AccountResponseDto.builder()
                 .id(entity.getId())
-                .firstName(entity.getFirstName())
-                .lastName(entity.getLastName())
+                .username(entity.getUsername())
                 .email(entity.getEmail())
                 .isEnabled(entity.getIsEnabled())
+                .createdAt(entity.getCreatedAt())
+                .updatedAt(entity.getUpdatedAt())
                 .roleNames(entity.getRoles().stream()
                         .map(Role::getName)
-                        .collect(Collectors.toSet()))
+                        .collect(Collectors.toList()))
                 .build();
     }
 }

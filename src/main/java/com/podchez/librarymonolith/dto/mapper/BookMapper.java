@@ -2,7 +2,7 @@ package com.podchez.librarymonolith.dto.mapper;
 
 import com.podchez.librarymonolith.dto.BookRequestDto;
 import com.podchez.librarymonolith.dto.BookResponseDto;
-import com.podchez.librarymonolith.entity.Book;
+import com.podchez.librarymonolith.model.Book;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -13,8 +13,6 @@ public class BookMapper implements Mapper<BookRequestDto, Book, BookResponseDto>
                 .title(reqDto.getTitle())
                 .pages(reqDto.getPages())
                 .priceInCents(reqDto.getPriceInCents())
-                // the genreName->genre mapping with all checks is in the BookService
-                // the authorFullName->author mapping with all checks is in the BookService
                 .build();
     }
 
@@ -26,7 +24,6 @@ public class BookMapper implements Mapper<BookRequestDto, Book, BookResponseDto>
                 .pages(entity.getPages())
                 .priceInCents(entity.getPriceInCents())
                 .isAvailable(entity.getIsAvailable())
-                .genreName(entity.getGenre().getName())
                 .authorFullName(entity.getAuthor().getFullName())
                 .build();
     }

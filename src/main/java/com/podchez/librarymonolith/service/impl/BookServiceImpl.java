@@ -1,107 +1,116 @@
 package com.podchez.librarymonolith.service.impl;
 
-import com.podchez.librarymonolith.dto.BookRequestDto;
-import com.podchez.librarymonolith.dto.BookResponseDto;
-import com.podchez.librarymonolith.dto.mapper.BookMapper;
-import com.podchez.librarymonolith.entity.Author;
-import com.podchez.librarymonolith.entity.Book;
-import com.podchez.librarymonolith.entity.Genre;
 import com.podchez.librarymonolith.exception.AuthorNotFoundException;
+import com.podchez.librarymonolith.model.Author;
+import com.podchez.librarymonolith.model.Book;
 import com.podchez.librarymonolith.exception.BookNotFoundException;
-import com.podchez.librarymonolith.exception.GenreNotFoundException;
 import com.podchez.librarymonolith.repository.AuthorRepository;
 import com.podchez.librarymonolith.repository.BookRepository;
-import com.podchez.librarymonolith.repository.GenreRepository;
 import com.podchez.librarymonolith.service.BookService;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
+import javax.validation.ConstraintViolation;
+import javax.validation.ConstraintViolationException;
+import javax.validation.Validator;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
+@Transactional(readOnly = true)
+@Slf4j
 public class BookServiceImpl implements BookService {
 
     private final BookRepository bookRepository;
-    private final BookMapper bookMapper;
-    private final GenreRepository genreRepository;
     private final AuthorRepository authorRepository;
+    private final Validator validator;
 
     @Autowired
-    public BookServiceImpl(BookRepository bookRepository, BookMapper bookMapper,
-                           GenreRepository genreRepository, AuthorRepository authorRepository) {
+    public BookServiceImpl(BookRepository bookRepository, AuthorRepository authorRepository, Validator validator) {
         this.bookRepository = bookRepository;
-        this.bookMapper = bookMapper;
-        this.genreRepository = genreRepository;
         this.authorRepository = authorRepository;
+        this.validator = validator;
     }
 
     @Override
-    public List<BookResponseDto> findAll() {
-        return bookRepository.findAll().stream()
-                .map(bookMapper::toRespDto)
-                .collect(Collectors.toList());
+    public List<Book> findAll() {
+        log.info("IN findAll");
+        return bookRepository.findAll();
     }
 
     @Override
-    public List<BookResponseDto> findAllByTitle(String title) {
-        return bookRepository.findAllByTitleIgnoreCaseContaining(title).stream()
-                .map(bookMapper::toRespDto)
-                .collect(Collectors.toList());
+    public List<Book> findAllByTitle(String title) {
+        log.info("IN findAllByTitle");
+        return bookRepository.findAllByTitleIgnoreCaseContaining(title);
     }
 
     @Override
-    public BookResponseDto findById(Long id) {
-        return bookMapper.toRespDto(bookRepository.findById(id)
-                .orElseThrow(() -> new BookNotFoundException(id)));
+    public Book findById(Long id) {
+        log.info("IN findById - id: {}", id);
+        return bookRepository.findById(id)
+                .orElseThrow(() -> new BookNotFoundException("There is no book with ID = " + id + " in the database."));
     }
 
     @Override
-    public BookResponseDto save(BookRequestDto bookReqDto) {
-        Book book = bookMapper.toEntity(bookReqDto);
-        book.setGenre(getGenreFromBookReqDto(bookReqDto));
-        book.setAuthor(getAuthorFromBookReqDto(bookReqDto));
+    @Transactional
+    public void save(Book book, String authorFullName) {
+        validate(book);
+
+        Author author = authorRepository.findByFullName(authorFullName)
+                .orElseThrow(() -> new AuthorNotFoundException(("There is no author with full name '" + authorFullName + "' in the DB")));
+
+        book.setAuthor(author);
         book.setIsAvailable(true);
 
-        Book savedBook = bookRepository.save(book);
-        return bookMapper.toRespDto(savedBook);
+        author.getBooks().add(book);
+
+        bookRepository.save(book);
+        log.info("IN save - book with title: {} saved", book.getTitle());
     }
 
     @Override
-    public BookResponseDto update(Long id, BookRequestDto bookReqDto) {
+    @Transactional
+    public void update(Long id, Book book, String authorFullName) {
+        validate(book);
+
         if (!bookRepository.existsById(id)) {
-            throw new BookNotFoundException(id);
+            throw new BookNotFoundException("There is no book with ID = " + id + " in the database.");
         }
 
-        Book book = bookMapper.toEntity(bookReqDto);
-        book.setGenre(getGenreFromBookReqDto(bookReqDto));
-        book.setAuthor(getAuthorFromBookReqDto(bookReqDto));
-        book.setIsAvailable(true);
-        book.setId(id); // to avoid saving
+        Author author = authorRepository.findByFullName(authorFullName)
+                .orElseThrow(() -> new AuthorNotFoundException(("There is no author with full name '" + authorFullName + "' in the DB")));
 
-        Book updatedBook = bookRepository.save(book);
-        return bookMapper.toRespDto(updatedBook);
+        book.setAuthor(author);
+        book.setId(id);
+
+        author.getBooks().remove(book);
+        author.getBooks().add(book);
+
+        bookRepository.save(book);
+        log.info("IN update - book with id: {} updated", id);
     }
 
     @Override
-    public void deleteById(Long id) {
+    @Transactional
+    public void delete(Long id) {
         if (!bookRepository.existsById(id)) {
-            throw new BookNotFoundException(id);
+            throw new BookNotFoundException("There is no book with ID = " + id + " in the database.");
         }
         bookRepository.deleteById(id);
+        log.info("IN delete - book with id: {} deleted", id);
     }
 
-    // Helper method
-    private Genre getGenreFromBookReqDto(BookRequestDto bookReqDto) {
-        String genreName = bookReqDto.getGenreName();
-        return genreRepository.findByName(genreName)
-                .orElseThrow(() -> new GenreNotFoundException(genreName));
-    }
-
-    // Helper method
-    private Author getAuthorFromBookReqDto(BookRequestDto bookReqDto) {
-        String authorFullName = bookReqDto.getAuthorFullName();
-        return authorRepository.findByFullName(authorFullName)
-                .orElseThrow(() -> new AuthorNotFoundException(authorFullName));
+    private void validate(Book book) {
+        Set<ConstraintViolation<Book>> violations = validator.validate(book);
+        if (!violations.isEmpty()) {
+            StringBuilder sb = new StringBuilder();
+            for (ConstraintViolation<Book> violation : violations) {
+                sb.append(violation.getMessage() + "; ");
+            }
+            throw new ConstraintViolationException(sb.toString(), violations);
+        }
     }
 }

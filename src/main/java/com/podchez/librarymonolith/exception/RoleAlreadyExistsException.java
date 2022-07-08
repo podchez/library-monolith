@@ -1,7 +1,7 @@
 package com.podchez.librarymonolith.exception;
 
 public class RoleAlreadyExistsException extends RuntimeException {
-    public RoleAlreadyExistsException(String name) {
-        super("Role with name '" + name + "' already exists.");
+    public RoleAlreadyExistsException(String message) {
+        super(message);
     }
 }

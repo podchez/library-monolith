@@ -1,6 +1,6 @@
 package com.podchez.librarymonolith.repository;
 
-import com.podchez.librarymonolith.entity.Role;
+import com.podchez.librarymonolith.model.Role;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.Optional;

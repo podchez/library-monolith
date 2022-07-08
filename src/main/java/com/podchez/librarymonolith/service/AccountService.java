@@ -1,21 +1,22 @@
 package com.podchez.librarymonolith.service;
 
-import com.podchez.librarymonolith.dto.AccountRequestDto;
-import com.podchez.librarymonolith.dto.AccountResponseDto;
+import com.podchez.librarymonolith.model.Account;
 
 import java.util.List;
 
 public interface AccountService {
 
-    List<AccountResponseDto> findAll();
+    List<Account> findAll();
 
-    AccountResponseDto findById(Long id);
+    Account findById(Long id);
 
-    AccountResponseDto findByEmail(String email);
+    Account findByUsername(String username);
 
-    AccountResponseDto save(AccountRequestDto accReqDto);
+    Account findByEmail(String email);
 
-    AccountResponseDto update(Long id, AccountRequestDto accReqDto);
+    void save(Account account);
 
-    void deleteById(Long id);
+    void update(Long id, Account account);
+
+    void delete(Long id);
 }
