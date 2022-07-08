@@ -1,88 +1,108 @@
 package com.podchez.librarymonolith.service.impl;
 
-import com.podchez.librarymonolith.dto.AuthorRequestDto;
-import com.podchez.librarymonolith.dto.AuthorResponseDto;
-import com.podchez.librarymonolith.dto.mapper.AuthorMapper;
-import com.podchez.librarymonolith.entity.Author;
 import com.podchez.librarymonolith.exception.AuthorAlreadyExistsException;
 import com.podchez.librarymonolith.exception.AuthorNotFoundException;
+import com.podchez.librarymonolith.model.Author;
 import com.podchez.librarymonolith.repository.AuthorRepository;
 import com.podchez.librarymonolith.service.AuthorService;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
+import javax.validation.ConstraintViolation;
+import javax.validation.ConstraintViolationException;
+import javax.validation.Validator;
 import java.util.List;
-import java.util.Optional;
-import java.util.stream.Collectors;
+import java.util.Set;
 
 @Service
+@Transactional(readOnly = true)
+@Slf4j
 public class AuthorServiceImpl implements AuthorService {
 
     private final AuthorRepository authorRepository;
-    private final AuthorMapper authorMapper;
+    private final Validator validator;
 
     @Autowired
-    public AuthorServiceImpl(AuthorRepository authorRepository, AuthorMapper authorMapper) {
+    public AuthorServiceImpl(AuthorRepository authorRepository, Validator validator) {
         this.authorRepository = authorRepository;
-        this.authorMapper = authorMapper;
-    }
-
-
-    @Override
-    public List<AuthorResponseDto> findAll() {
-        return authorRepository.findAll().stream()
-                .map(authorMapper::toRespDto)
-                .collect(Collectors.toList());
+        this.validator = validator;
     }
 
     @Override
-    public AuthorResponseDto findById(Long id) {
-        return authorMapper.toRespDto(authorRepository.findById(id)
-                .orElseThrow(() -> new AuthorNotFoundException(id)));
+    public List<Author> findAll() {
+        log.info("IN findAll");
+        return authorRepository.findAll();
     }
 
     @Override
-    public AuthorResponseDto findByFullName(String fullName) {
-        return authorMapper.toRespDto(authorRepository.findByFullName(fullName)
-                .orElseThrow(() -> new AuthorNotFoundException(fullName)));
+    public Author findById(Long id) {
+        log.info("IN findById - id: {}", id);
+        return authorRepository.findById(id)
+                .orElseThrow(() -> new AuthorNotFoundException("There is no author with ID " + id + " in the DB"));
     }
 
     @Override
-    public AuthorResponseDto save(AuthorRequestDto authorReqDto) {
-        String authorFullName = authorReqDto.getFullName();
-        if (authorRepository.findByFullName(authorFullName).isPresent()) {
-            throw new AuthorAlreadyExistsException(authorFullName);
+    public Author findByFullName(String fullName) {
+        log.info("IN findByFullName - fullName: {}", fullName);
+        return authorRepository.findByFullName(fullName)
+                .orElseThrow(() -> new AuthorNotFoundException("There is no author with full name '" + fullName + "' in the DB"));
+    }
+
+    @Override
+    @Transactional
+    public void save(Author author) {
+        validate(author);
+
+        String fullName = author.getFullName();
+        if (authorRepository.findByFullName(fullName).isPresent()) {
+            throw new AuthorAlreadyExistsException("Author with full name '" + fullName + "' already exists");
         }
 
-        Author savedAuthor = authorRepository.save(authorMapper.toEntity(authorReqDto));
-        return authorMapper.toRespDto(savedAuthor);
+        authorRepository.save(author);
+        log.info("IN save - author with fullName: {} saved", fullName);
     }
 
     @Override
-    public AuthorResponseDto update(Long id, AuthorRequestDto authorReqDto) {
+    @Transactional
+    public void update(Long id, Author author) {
+        validate(author);
+
         if (!authorRepository.existsById(id)) {
-            throw new AuthorNotFoundException(id);
+            throw new AuthorNotFoundException("There is no author with ID " + id + " in the DB");
         }
 
-        String authorFullName = authorReqDto.getFullName();
-        Optional<Author> authorWithSameFullName = authorRepository.findByFullName(authorFullName);
-        if (authorWithSameFullName.isPresent() &&
-                !authorWithSameFullName.get().getId().equals(id)) {
-            throw new AuthorAlreadyExistsException(authorFullName);
-        }
+        String fullName = author.getFullName();
+        authorRepository.findByFullName(fullName).ifPresent((authorWithSameFullName -> {
+            if (!authorWithSameFullName.getId().equals(id)) {
+                throw new AuthorAlreadyExistsException("Author with full name '" + fullName + "' already exists");
+            }
+        }));
 
-        Author author = authorMapper.toEntity(authorReqDto);
-        author.setId(id); // to avoid saving
-
-        Author updatedAuthor = authorRepository.save(author);
-        return authorMapper.toRespDto(updatedAuthor);
+        author.setId(id);
+        authorRepository.save(author);
+        log.info("IN update - author with id: {} updated", id);
     }
 
     @Override
-    public void deleteById(Long id) {
+    @Transactional
+    public void delete(Long id) {
         if (!authorRepository.existsById(id)) {
-            throw new AuthorNotFoundException(id);
+            throw new AuthorNotFoundException("There is no author with ID " + id + " in the DB");
         }
         authorRepository.deleteById(id);
+        log.info("IN delete - author with id: {} deleted", id);
+    }
+
+    private void validate(Author author) {
+        Set<ConstraintViolation<Author>> violations = validator.validate(author);
+        if (!violations.isEmpty()) {
+            StringBuilder sb = new StringBuilder();
+            for (ConstraintViolation<Author> violation : violations) {
+                sb.append(violation.getMessage() + "; ");
+            }
+            throw new ConstraintViolationException(sb.toString(), violations);
+        }
     }
 }

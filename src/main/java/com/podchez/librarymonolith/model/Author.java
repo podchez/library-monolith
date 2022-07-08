@@ -1,9 +1,11 @@
-package com.podchez.librarymonolith.entity;
+package com.podchez.librarymonolith.model;
 
 import lombok.*;
 
 import javax.persistence.*;
-import java.util.Set;
+import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.Size;
+import java.util.List;
 
 @Getter
 @Setter
@@ -18,9 +20,11 @@ public class Author {
     @Column(name = "id")
     private Long id;
 
+    @NotBlank(message = "Full name should not be empty")
+    @Size(max = 255, message = "Full Name's length should be less than 255")
     @Column(name = "full_name")
     private String fullName;
 
     @OneToMany(mappedBy = "author", cascade = CascadeType.ALL)
-    private Set<Book> books;
+    private List<Book> books;
 }

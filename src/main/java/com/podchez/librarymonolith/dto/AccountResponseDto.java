@@ -2,7 +2,8 @@ package com.podchez.librarymonolith.dto;
 
 import lombok.*;
 
-import java.util.Set;
+import java.time.LocalDateTime;
+import java.util.List;
 
 @Getter
 @Setter
@@ -13,13 +14,15 @@ public class AccountResponseDto {
 
     private Long id;
 
-    private String firstName;
-
-    private String lastName;
+    private String username;
 
     private String email;
 
     private Boolean isEnabled;
 
-    private Set<String> roleNames;
+    private LocalDateTime createdAt;
+
+    private LocalDateTime updatedAt;
+
+    private List<String> roleNames;
 }

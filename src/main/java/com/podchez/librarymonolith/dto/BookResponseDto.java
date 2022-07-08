@@ -19,7 +19,5 @@ public class BookResponseDto {
 
     private Boolean isAvailable;
 
-    private String genreName;
-
     private String authorFullName;
 }

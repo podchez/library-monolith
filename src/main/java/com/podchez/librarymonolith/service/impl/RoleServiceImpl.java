@@ -1,87 +1,110 @@
 package com.podchez.librarymonolith.service.impl;
 
-import com.podchez.librarymonolith.dto.RoleRequestDto;
-import com.podchez.librarymonolith.dto.RoleResponseDto;
-import com.podchez.librarymonolith.dto.mapper.RoleMapper;
-import com.podchez.librarymonolith.entity.Role;
+import com.podchez.librarymonolith.model.Role;
 import com.podchez.librarymonolith.exception.RoleAlreadyExistsException;
 import com.podchez.librarymonolith.exception.RoleNotFoundException;
 import com.podchez.librarymonolith.repository.RoleRepository;
 import com.podchez.librarymonolith.service.RoleService;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
+import javax.validation.ConstraintViolation;
+import javax.validation.ConstraintViolationException;
+import javax.validation.Validator;
 import java.util.List;
-import java.util.Optional;
-import java.util.stream.Collectors;
+import java.util.Set;
 
 @Service
+@Transactional(readOnly = true)
+@Slf4j
 public class RoleServiceImpl implements RoleService {
 
     private final RoleRepository roleRepository;
-    private final RoleMapper roleMapper;
+    private final Validator validator;
 
     @Autowired
-    public RoleServiceImpl(RoleRepository roleRepository, RoleMapper roleMapper) {
+    public RoleServiceImpl(RoleRepository roleRepository, Validator validator) {
         this.roleRepository = roleRepository;
-        this.roleMapper = roleMapper;
+        this.validator = validator;
     }
 
     @Override
-    public List<RoleResponseDto> findAll() {
-        return roleRepository.findAll().stream()
-                .map(roleMapper::toRespDto)
-                .collect(Collectors.toList());
+    public List<Role> findAll() {
+        log.info("IN findAll");
+        return roleRepository.findAll();
     }
 
     @Override
-    public RoleResponseDto findById(Integer id) {
-        return roleMapper.toRespDto(roleRepository.findById(id)
-                .orElseThrow(() -> new RoleNotFoundException(id)));
+    public Role findById(Integer id) {
+        log.info("IN findByName - id: {}", id);
+        return roleRepository.findById(id)
+                .orElseThrow(() -> new RoleNotFoundException("There is no role with ID = " + id + " in the database."));
     }
 
     @Override
-    public RoleResponseDto findByName(String name) {
-        return roleMapper.toRespDto(roleRepository.findByName(name)
-                .orElseThrow(() -> new RoleNotFoundException(name)));
+    public Role findByName(String name) {
+        log.info("IN findByName - name: {}", name);
+        return roleRepository.findByName(name)
+                .orElseThrow(() -> new RoleNotFoundException("There is no role with name = '" + name + "' in the database."));
     }
 
     @Override
-    public RoleResponseDto save(RoleRequestDto roleReqDto) {
-        String roleName = roleReqDto.getName();
-        if (roleRepository.findByName(roleName).isPresent()) {
-            throw new RoleAlreadyExistsException(roleName);
+    @Transactional
+    public void save(Role role) {
+        validate(role);
+
+        String name = role.getName();
+        if (roleRepository.findByName(name).isPresent()) {
+            throw new RoleAlreadyExistsException("Role with name '" + name + "' already exists.");
         }
 
-        Role savedRole = roleRepository.save(roleMapper.toEntity(roleReqDto));
-        return roleMapper.toRespDto(savedRole);
+        roleRepository.save(role);
+        log.info("IN save - role with name: {} saved", name);
     }
 
     @Override
-    public RoleResponseDto update(Integer id, RoleRequestDto roleReqDto) {
+    @Transactional
+    public void update(Integer id, Role role) {
+        validate(role);
+
         if (!roleRepository.existsById(id)) {
-            throw new RoleNotFoundException(id);
+            throw new RoleNotFoundException("There is no role with ID = " + id + " in the database.");
         }
 
-        String roleName = roleReqDto.getName();
-        Optional<Role> roleWithSameName = roleRepository.findByName(roleName);
-        if (roleWithSameName.isPresent() &&
-                !roleWithSameName.get().getId().equals(id)) {
-            throw new RoleAlreadyExistsException(roleName);
-        }
+        String name = role.getName();
+        roleRepository.findByName(name).ifPresent(roleWithSameName -> {
+            if (!role.getId().equals(id)) {
+                throw new RoleAlreadyExistsException("Role with name '" + name + "' already exists.");
+            }
+        });
 
-        Role role = roleMapper.toEntity(roleReqDto);
-        role.setId(id); // to avoid saving
+        role.setId(id);
 
-        Role updatedRole = roleRepository.save(role);
-        return roleMapper.toRespDto(updatedRole);
+        roleRepository.save(role);
+        log.info("IN update - role with id: {} updated", id);
     }
 
     @Override
-    public void deleteById(Integer id) {
+    @Transactional
+    public void delete(Integer id) {
         if (!roleRepository.existsById(id)) {
-            throw new RoleNotFoundException(id);
+            throw new RoleNotFoundException("There is no role with ID = " + id + " in the database.");
         }
+
         roleRepository.deleteById(id);
+        log.info("IN delete - role with id: {} deleted", id);
+    }
+
+    private void validate(Role role) {
+        Set<ConstraintViolation<Role>> violations = validator.validate(role);
+        if (!violations.isEmpty()) {
+            StringBuilder sb = new StringBuilder();
+            for (ConstraintViolation<Role> violation : violations) {
+                sb.append(violation.getMessage() + "; ");
+            }
+            throw new ConstraintViolationException(sb.toString(), violations);
+        }
     }
 }
