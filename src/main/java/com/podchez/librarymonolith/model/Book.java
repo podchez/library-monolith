@@ -46,14 +46,13 @@ public class Book {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         Book book = (Book) o;
-        return Objects.equals(id, book.id) &&
-                Objects.equals(title, book.title) &&
+        return Objects.equals(title, book.title) &&
                 Objects.equals(pages, book.pages) &&
                 Objects.equals(priceInCents, book.priceInCents);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, title, pages, priceInCents);
+        return Objects.hash(title, pages, priceInCents);
     }
 }
