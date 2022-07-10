@@ -8,6 +8,7 @@ import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.builders.WebSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.config.http.SessionCreationPolicy;
@@ -22,6 +23,15 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     private final UserDetailsService userDetailsService;
     private final JwtFilter jwtFilter;
 
+    private final String[] AUTH_WHITELIST = {
+            "/swagger-ui.html",
+            "/v2/api-docs",
+            "/webjars/**",
+            "/swagger-resources/**",
+            "/api/v1/accounts/registration",
+            "/api/v1/accounts/login"
+    };
+
     @Autowired
     public SecurityConfig(@Qualifier("accountDetailsService") UserDetailsService userDetailsService, JwtFilter jwtFilter) {
         this.userDetailsService = userDetailsService;
@@ -33,8 +43,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         http
                 .csrf().disable()
                 .authorizeRequests()
-                    .antMatchers(HttpMethod.POST, "/**/registration").permitAll()
-                    .antMatchers(HttpMethod.POST, "/**/login").permitAll()
+                    .antMatchers(AUTH_WHITELIST).permitAll()
                     .antMatchers(HttpMethod.DELETE, "/api/**").hasRole("ADMIN")
                     .antMatchers(HttpMethod.PUT, "/api/**").hasAnyRole("ADMIN", "STAFF")
                     .antMatchers(HttpMethod.POST, "/api/**").hasAnyRole("ADMIN", "STAFF")

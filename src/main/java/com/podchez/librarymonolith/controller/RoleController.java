@@ -58,7 +58,7 @@ public class RoleController {
 
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT) // 204
-    public void deleteById(@PathVariable Integer id) {
+    public void delete(@PathVariable Integer id) {
         roleService.delete(id);
     }
 }
