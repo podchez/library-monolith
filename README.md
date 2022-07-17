@@ -16,10 +16,9 @@ Spring Boot Monolithic Application with secured RESTful endpoints.
 - **Swagger**
 
 ## Deployment :rocket:
-1) Clone this repository `git clone https://github.com/podchez/library-monolith.git`
-2) From the root folder of the project type in the terminal `./mvnw clean install` `./mvnw spring-boot:run`
+Open terminal for running bash scripts (for example Git Bash) and type `bash start.sh`
 
-The application should start locally on `http://localhost:8070/`
+(The application should start locally on port 8070)
 
 
 ## Security :closed_lock_with_key:
