@@ -1,6 +1,7 @@
 package com.podchez.librarymonolith.model;
 
 import lombok.*;
+import org.hibernate.annotations.Cascade;
 
 import javax.persistence.*;
 import javax.validation.constraints.*;

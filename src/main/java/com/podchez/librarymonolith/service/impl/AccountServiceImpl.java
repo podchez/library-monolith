@@ -3,6 +3,7 @@ package com.podchez.librarymonolith.service.impl;
 import com.podchez.librarymonolith.model.Account;
 import com.podchez.librarymonolith.exception.AccountAlreadyExistsException;
 import com.podchez.librarymonolith.exception.AccountNotFoundException;
+import com.podchez.librarymonolith.model.Role;
 import com.podchez.librarymonolith.repository.AccountRepository;
 import com.podchez.librarymonolith.repository.RoleRepository;
 import com.podchez.librarymonolith.service.AccountService;
@@ -84,7 +85,9 @@ public class AccountServiceImpl implements AccountService {
         account.setUpdatedAt(LocalDateTime.now());
         account.setPassword(passwordEncoder.encode(account.getPassword()));
 
-        account.setRoles(Collections.singletonList(roleRepository.findByName("ROLE_USER").get()));
+        Role roleUser = roleRepository.findByName("ROLE_USER").get();
+        account.setRoles(Collections.singletonList(roleUser));
+        roleUser.getAccounts().add(account);
         accountRepository.save(account);
         log.info("IN save - account with username: {} and email: {} saved", username, email);
     }
