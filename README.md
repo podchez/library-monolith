@@ -16,9 +16,12 @@ Spring Boot Monolithic Application with secured RESTful endpoints.
 - **Swagger**
 
 ## Deployment :rocket:
-Open terminal for running bash scripts (for example Git Bash) and type `bash start.sh`
+Required software:
+- terminal for running bash scripts (for example Git Bash)
+- docker
 
-(The application should start locally on port 8070)
+**Open the terminal and type `bash start.sh`**
+(the application should start locally on port 8070)
 
 
 ## Security :closed_lock_with_key:
