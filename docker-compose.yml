@@ -1,0 +1,28 @@
+version: '3.1'
+
+services:
+  library:
+    container_name: library
+    depends_on:
+      - library_db
+    build:
+      context: .
+    environment:
+      DB_USER: ${DB_USER}
+      DB_PASSWORD: ${DB_PASSWORD}
+    restart: always
+    ports:
+      - "8070:8070"
+
+  library_db:
+    container_name: library_db
+    image: postgres
+    restart: always
+    environment:
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: library_db
+    ports:
+      - "5432:5432"
+    expose:
+      - "5432"
