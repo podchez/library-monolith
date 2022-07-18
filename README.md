@@ -4,23 +4,25 @@ Spring Boot Monolithic Application with secured RESTful endpoints.
 ## Technologies :bulb:
 - **Java 11**
 - **Maven**
-- **Spring Boot**
-- **Spring Web**
-- **Spring Data**
-- **Spring Security** + **JWT**
+- **Spring (Boot, Web, Data, Security, Test)**
+- **Hibernate**
 - **PostgreSQL**
 - **Flyway**
-- **JUnit** + **AssertJ** + **Mockito**
+- **Docker**, **Docker Compose**, **Bash**
+- **JUnit**, **AssertJ**, **Mockito**, **H2 Database**
 - **Slf4j**
 - **Lombok**
 - **Swagger**
 
 ## Deployment :rocket:
 Required software:
-- terminal for running bash scripts (for example Git Bash)
+- terminal for running bash scripts (for example, Git Bash)
 - docker
 
-**Open the terminal and type `bash start.sh`**
+Steps:
+1) Clone this repository `git clone https://github.com/podchez/library-monolith.git`
+2) From the root folder of the project - **type in the terminal `bash start.sh`**
+
 (the application should start locally on port 8070)
 
 
