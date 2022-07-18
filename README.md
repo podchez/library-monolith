@@ -9,6 +9,7 @@ Spring Boot Monolithic Application with secured RESTful endpoints.
 - **PostgreSQL**
 - **Flyway**
 - **Docker**, **Docker Compose**, **Bash**
+- **CI/CD** pipeline with GitHub Actions
 - **JUnit**, **AssertJ**, **Mockito**, **H2 Database**
 - **Slf4j**
 - **Lombok**
